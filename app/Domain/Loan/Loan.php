@@ -10,13 +10,9 @@ use App\Domain\Exceptions\LoanRuleException;
 use DateTimeImmutable;
 use DomainException;
 
-/**
- * Agregado Loan (T-05). Un préstamo tiene de 1 a 3 líneas, sin libro repetido,
- * vence a 14 días y solo cambia por devolución (RN-2, RN-5).
- */
+
 final class Loan
 {
-    /** @var list<LoanItem> */
     private array $items = [];
 
     public function __construct(
@@ -27,10 +23,7 @@ final class Loan
     ) {
     }
 
-    /**
-     * Añade una línea: descontar el ejemplar y crear la línea son una sola operación.
-     * Congela título, ISBN y categoría del instante del préstamo.
-     */
+    
     public function addItem(string $itemId, Book $book, string $categoryName): void
     {
         if (count($this->items) >= LoanPolicy::MAX_LINES_PER_LOAN) {
@@ -42,8 +35,7 @@ final class Loan
             }
         }
 
-        $book->withdraw(); // lanza BookNotAvailableException; si falla, no se añade la línea
-
+        $book->withdraw(); 
         $this->items[] = new LoanItem(
             $itemId,
             $book->id,
@@ -54,7 +46,6 @@ final class Loan
         );
     }
 
-    /** Devuelve una línea y suma 1 al libro una sola vez (CA-07.1, CA-07.2). */
     public function returnItem(string $itemId, Book $book, DateTimeImmutable $at): void
     {
         foreach ($this->items as $i => $item) {
@@ -77,13 +68,11 @@ final class Loan
         throw new DomainException('La línea no pertenece a este préstamo.');
     }
 
-    /** Estado calculado; nunca se almacena (CA-08.3). */
     public function status(DateTimeImmutable $now): LoanStatus
     {
         return LoanPolicy::statusOf(array_map(static fn (LoanItem $i): LoanLine => $i->toLine(), $this->items), $now);
     }
 
-    /** @return list<LoanItem> */
     public function items(): array
     {
         return $this->items;
