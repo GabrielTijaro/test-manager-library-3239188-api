@@ -11,10 +11,7 @@ use DateTimeImmutable;
 use DomainException;
 use InvalidArgumentException;
 
-/**
- * Agregado Book (T-04). Defiende RN-1: disponibles siempre entre 0 y el total.
- * PHP puro: sin Laravel ni acceso a datos (Artículo I).
- */
+
 final class Book
 {
     private function __construct(
@@ -30,7 +27,6 @@ final class Book
     ) {
     }
 
-    /** Libro nuevo: los disponibles arrancan iguales al total (CA-03.1). */
     public static function create(string $id, string $title, string $author, Isbn $isbn, string $categoryId, Quantity $total): self
     {
         $title = trim($title);
@@ -42,7 +38,6 @@ final class Book
         return new self($id, $title, $author, $isbn, $categoryId, $total->value, $total->value, null, null);
     }
 
-    /** Reconstruye un libro guardado, validando que la fila respete RN-1. */
     public static function restore(
         string $id,
         string $title,
@@ -61,7 +56,7 @@ final class Book
         return new self($id, $title, $author, $isbn, $categoryId, $total, $available, $coverKey, $deletedAt);
     }
 
-    /** Descuenta 1 ejemplar. Nunca deja los disponibles por debajo de 0. */
+   
     public function withdraw(): void
     {
         if ($this->availableCopies <= 0) {
@@ -70,7 +65,6 @@ final class Book
         $this->availableCopies--;
     }
 
-    /** Devuelve 1 ejemplar. Nunca deja los disponibles por encima del total. */
     public function restock(): void
     {
         if ($this->availableCopies >= $this->totalCopies) {
@@ -79,7 +73,6 @@ final class Book
         $this->availableCopies++;
     }
 
-    /** Cambiar el total ajusta los disponibles en la misma diferencia, sin bajar de 0 (CA-03.3). */
     public function resize(Quantity $newTotal): void
     {
         $available = $this->availableCopies + ($newTotal->value - $this->totalCopies);
@@ -90,7 +83,7 @@ final class Book
         $this->availableCopies = $available;
     }
 
-    /** Baja lógica (CA-03.5). Que no haya préstamos abiertos lo comprueba el caso de uso. */
+
     public function softDelete(DateTimeImmutable $at): void
     {
         $this->deletedAt ??= $at;
@@ -125,4 +118,7 @@ final class Book
     {
         return $this->coverKey;
     }
-}
+
+    }
+
+
